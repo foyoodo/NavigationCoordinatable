@@ -8,20 +8,23 @@
 
 import UIKit
 
-protocol CoordinatableViewController: UIViewController {
+public protocol CoordinatableViewController: UIViewController {
 
-    var navigationContext: NavigationModelCoordinatableContext? { get set }
+    var coordinatableContext: (any CoordinatableContext)? { get set }
 
     var resolvedNavigationController: UINavigationController? { get }
 }
 
 extension CoordinatableViewController {
 
-    var resolvedNavigationController: UINavigationController? {
-        navigationContext?.navigationController ?? navigationController
+    public var resolvedNavigationController: UINavigationController? {
+        if case let navigationContext as NavigationModelCoordinatableContext = coordinatableContext {
+            return navigationContext.navigationController ?? navigationController
+        }
+        return navigationController
     }
 
-    func push(_ viewController: UIViewController, animated: Bool) {
+    public func push(_ viewController: UIViewController, animated: Bool) {
         resolvedNavigationController?.pushViewController(viewController, animated: animated)
     }
 }

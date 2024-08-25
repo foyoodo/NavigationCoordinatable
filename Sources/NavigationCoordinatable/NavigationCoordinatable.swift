@@ -8,15 +8,16 @@
 
 import SwiftUI
 
-protocol ViewRepresentable {
+public protocol ViewRepresentable {
+
     func view() -> AnyView
 }
 
-protocol Coordinatable: ObservableObject, ViewRepresentable {
+public protocol Coordinatable: ObservableObject, ViewRepresentable {
 
 }
 
-protocol NavigationCoordinatable: Coordinatable {
+public protocol NavigationCoordinatable: Coordinatable {
 
     typealias Route = NavigationRoute
 
@@ -36,10 +37,17 @@ protocol NavigationCoordinatable: Coordinatable {
     ) -> Output
 }
 
+extension AnyView: ViewRepresentable {
+
+    public func view() -> AnyView {
+        self
+    }
+}
+
 extension NavigationCoordinatable {
 
     @discardableResult
-    func route<Input, Output: NavigationCoordinatable>(
+    public func route<Input, Output: NavigationCoordinatable>(
         to route: KeyPath<Self, Transition<Self, Input, Output>>,
         input: Input
     ) -> Output {
@@ -62,13 +70,13 @@ extension NavigationCoordinatable {
     }
 
     @discardableResult
-    func route<Output: NavigationCoordinatable>(
+    public func route<Output: NavigationCoordinatable>(
         to route: KeyPath<Self, Transition<Self, Void, Output>>
     ) -> Output {
         self.route(to: route, input: ())
     }
 
-    func popToRoot() {
+    public func popToRoot() {
         if let context = context as? NavigationCoordinatableContext {
             context.path.removeLast(context.path.count)
         } else {
@@ -76,7 +84,7 @@ extension NavigationCoordinatable {
         }
     }
 
-    func popLast() {
+    public func popLast() {
         if let context = context as? NavigationCoordinatableContext, context.path.count > 0 {
             context.path.removeLast()
         } else {
@@ -84,11 +92,11 @@ extension NavigationCoordinatable {
         }
     }
 
-    func rootView() -> some View {
+    public func rootView() -> some View {
         root.environmentObject(self)
     }
 
-    func view() -> AnyView {
+    public func view() -> AnyView {
         if context == nil {
             context = NavigationCoordinatableContext(root: self)
         }
@@ -110,15 +118,15 @@ struct NavigationStackItem: Hashable {
     }
 }
 
-struct Transition<T: NavigationCoordinatable, Input, Output: ViewRepresentable> {
+public struct Transition<T: NavigationCoordinatable, Input, Output: ViewRepresentable> {
 
     let closure: (T) -> (Input) -> (Output)
 }
 
 @propertyWrapper 
-class NavigationRoute<T: NavigationCoordinatable, Input, Output: ViewRepresentable> {
+public struct NavigationRoute<T: NavigationCoordinatable, Input, Output: ViewRepresentable> {
 
-    var wrappedValue: Transition<T, Input, Output>
+    public var wrappedValue: Transition<T, Input, Output>
 
     init(standard: Transition<T, Input, Output>) {
         self.wrappedValue = standard
@@ -126,11 +134,12 @@ class NavigationRoute<T: NavigationCoordinatable, Input, Output: ViewRepresentab
 }
 
 extension NavigationRoute {
-    convenience init(wrappedValue: @escaping (T) -> (Input) -> (Output)) {
+
+    public init(wrappedValue: @escaping (T) -> (Input) -> (Output)) {
         self.init(standard: .init(closure: wrappedValue))
     }
 
-    convenience init(wrappedValue: @escaping (T) -> () -> (Output)) where Input == Void {
+    public init(wrappedValue: @escaping (T) -> () -> (Output)) where Input == Void {
         self.init(standard: .init(closure: { coordinator in
             { _ in wrappedValue(coordinator)() }
         }))

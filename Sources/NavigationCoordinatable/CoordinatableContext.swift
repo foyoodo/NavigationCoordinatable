@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-protocol CoordinatableContext: ObservableObject {
+public protocol CoordinatableContext: ObservableObject {
 
     func route<Content>(@ViewBuilder _ view: () -> Content, animated: Bool) where Content: View
 
@@ -19,36 +19,38 @@ protocol CoordinatableContext: ObservableObject {
 
 extension CoordinatableContext where Self: NavigationCoordinatableContext {
 
-    func route<Content>(@ViewBuilder _ view: () -> Content, animated: Bool) where Content: View { }
+    public func route<Content>(@ViewBuilder _ view: () -> Content, animated: Bool) where Content: View {
+        path.append(NavigationStackItem(keyPath: UUID().hashValue, viewRepresent: AnyView(view())))
+    }
 
-    func popLast() { }
+    public func popLast() { }
 
-    func popToRoot() { }
+    public func popToRoot() { }
 }
 
-class NavigationModelCoordinatableContext: CoordinatableContext {
+public final class NavigationModelCoordinatableContext: CoordinatableContext {
 
     weak var navigationController: UINavigationController?
 
-    init(navigationController: UINavigationController?) {
+    public init(navigationController: UINavigationController?) {
         self.navigationController = navigationController
     }
 
-    func route<Content>(@ViewBuilder _ view: () -> Content, animated: Bool) where Content : View {
+    public func route<Content>(@ViewBuilder _ view: () -> Content, animated: Bool) where Content : View {
         let vc = UIHostingController(rootView: view())
         navigationController?.pushViewController(vc, animated: animated)
     }
 
-    func popLast() {
+    public func popLast() {
         navigationController?.popViewController(animated: true)
     }
 
-    func popToRoot() {
+    public func popToRoot() {
         navigationController?.popToRootViewController(animated: true)
     }
 }
 
-class NavigationCoordinatableContext: CoordinatableContext {
+public class NavigationCoordinatableContext: CoordinatableContext {
 
     @Published var path = NavigationPath()
 
