@@ -1,11 +1,3 @@
-//
-//  CoordinatableContext.swift
-//  NavigationCoordinatable
-//
-//  Created by foyoodo on 2024/5/22.
-//  Copyright © 2024 foyoodo. All rights reserved.
-//
-
 import SwiftUI
 
 public protocol CoordinatableContext: ObservableObject {
@@ -20,7 +12,7 @@ public protocol CoordinatableContext: ObservableObject {
 extension CoordinatableContext where Self: NavigationCoordinatableContext {
 
     public func route<Content>(@ViewBuilder _ view: () -> Content, animated: Bool) where Content: View {
-        path.append(NavigationStackItem(keyPath: UUID().hashValue, viewRepresent: AnyView(view())))
+        path.append(NavigationItem(keyPath: UUID().hashValue, viewRepresent: AnyView(view())))
     }
 
     public func popLast() { }
