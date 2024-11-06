@@ -1,9 +1,5 @@
 import SwiftUI
 
-public protocol ViewRepresentable {
-    func view() -> AnyView
-}
-
 public protocol Coordinatable: ObservableObject, ViewRepresentable {
 
 }
@@ -16,10 +12,6 @@ public protocol NavigationCoordinatable: Coordinatable {
     var context: (any CoordinatableContext)? { get set }
 
     @ViewBuilder var root: Root { get }
-}
-
-extension AnyView: ViewRepresentable {
-    public func view() -> AnyView { self }
 }
 
 extension NavigationCoordinatable {

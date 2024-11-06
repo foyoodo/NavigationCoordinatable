@@ -1,13 +1,13 @@
 import SwiftUI
 
-struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
+public struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
     @Namespace private var namespace
 
     var coordinator: T
 
     @EnvironmentObject var context: NavigationCoordinatableContext
 
-    var body: some View {
+    public var body: some View {
         universalView
             .environmentObject(coordinator)
             .environmentObject(NamespaceContainer(namespace))
@@ -19,12 +19,14 @@ struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
             NavigationStack(path: $context.path) {
                 coordinator.root
                     .navigationDestination(for: NavigationItem.self) { stackItem in
-                        stackItem.viewRepresent.view()
+                        AnyView(stackItem.viewRepresent.view())
                     }
                     .navigationDestination(for: NavigationIdentifiableItem.self) { item in
                         let view = switch item.transitionStyle {
                         case .zoom: item.viewRepresent.view()
+                            #if os(iOS)
                                 .zoomTransition(id: item.id, namespace: namespace)
+                            #endif
                         }
                         AnyView(view)
                     }

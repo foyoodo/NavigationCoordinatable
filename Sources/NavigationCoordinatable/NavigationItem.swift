@@ -2,7 +2,7 @@ import Foundation
 
 struct NavigationItem: Hashable {
     let keyPath: Int
-    let viewRepresent: ViewRepresentable
+    let viewRepresent: any ViewRepresentable
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(keyPath)
@@ -15,7 +15,7 @@ struct NavigationItem: Hashable {
 
 struct NavigationIdentifiableItem: Hashable {
     let id: String
-    let viewRepresent: ViewRepresentable
+    let viewRepresent: any ViewRepresentable
     let transitionStyle: TransitionStyle
 
     func hash(into hasher: inout Hasher) {

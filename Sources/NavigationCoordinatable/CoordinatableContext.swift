@@ -20,6 +20,17 @@ extension CoordinatableContext where Self: NavigationCoordinatableContext {
     public func popToRoot() { }
 }
 
+public class NavigationCoordinatableContext: CoordinatableContext {
+    @Published var path = NavigationPath()
+
+    weak var root: (any NavigationCoordinatable)?
+
+    init(root: any NavigationCoordinatable) {
+        self.root = root
+    }
+}
+
+#if os(iOS)
 public final class NavigationModelCoordinatableContext: CoordinatableContext {
 
     weak var navigationController: UINavigationController?
@@ -41,14 +52,4 @@ public final class NavigationModelCoordinatableContext: CoordinatableContext {
         navigationController?.popToRootViewController(animated: true)
     }
 }
-
-public class NavigationCoordinatableContext: CoordinatableContext {
-
-    @Published var path = NavigationPath()
-
-    weak var root: (any NavigationCoordinatable)?
-
-    init(root: any NavigationCoordinatable) {
-        self.root = root
-    }
-}
+#endif

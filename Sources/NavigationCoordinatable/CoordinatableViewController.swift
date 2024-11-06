@@ -1,3 +1,4 @@
+#if os(iOS)
 import UIKit
 
 public protocol CoordinatableViewController: UIViewController {
@@ -20,3 +21,4 @@ extension CoordinatableViewController {
         resolvedNavigationController?.pushViewController(viewController, animated: animated)
     }
 }
+#endif

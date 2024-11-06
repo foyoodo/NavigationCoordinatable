@@ -1,3 +1,4 @@
+#if os(iOS)
 import SwiftUI
 
 private struct ZoomTransitionModifier<ID: Hashable>: ViewModifier {
@@ -45,3 +46,4 @@ extension View {
         self.modifier(ZoomTransitionSourceModifier(id: id, namespace: namespace))
     }
 }
+#endif
