@@ -5,42 +5,55 @@ public protocol Coordinatable: ObservableObject, ViewRepresentable {
 }
 
 public protocol NavigationCoordinatable: Coordinatable {
+    typealias Root = NavigationRoot
     typealias Route = NavigationRoute
 
-    associatedtype Root: View
+    var context: NavigationContext<Self> { get }
+}
 
-    var context: (any CoordinatableContext)? { get set }
+extension NavigationCoordinatable {
+    var path: NavigationPath {
+        get { context.path }
+        set { context.path = newValue }
+    }
+}
 
-    @ViewBuilder var root: Root { get }
+extension NavigationCoordinatable {
+    public var root: AnyView.Represented {
+        self[keyPath: context.initial].representation(of: self).view()
+    }
+
+    public func view() -> some View {
+        NavigationCoordinatableView(coordinator: self)
+    }
 }
 
 extension NavigationCoordinatable {
     @discardableResult
     public func route<Input, Output: NavigationCoordinatable>(
-        to route: KeyPath<Self, Transition<Self, Presentation, Input, Output>>,
+        to route: KeyPath<Self, Transition<Self, PresentationRouteType, Input, Output>>,
         input: Input
     ) -> Output {
         let transition = self[keyPath: route]
-        let output = transition.represented(of: self, input: input)
-        output.context = context
+        let output = transition.representation(of: self, input: input)
 
-        if case let context as NavigationCoordinatableContext = context {
-            context.path.append(
-                NavigationItem(
-                    keyPath: route.hashValue,
-                    viewRepresent: output
-                )
-            )
-        } else {
-            context?.route(output.rootView, animated: true)
-        }
+        output.context.shouldCompatibleWithUIKit = context.shouldCompatibleWithUIKit
+        output.context.parent = self
+        output.context.root = context.root ?? context.parent ?? self
+
+        let item = NavigationItem(
+            keyPath: route.hashValue,
+            viewRepresent: output
+        )
+        context.lastPathItem = item
+        output.context.root?.path.append(item)
 
         return output
     }
 
     @discardableResult
     public func route<Output: NavigationCoordinatable>(
-        to route: KeyPath<Self, Transition<Self, Presentation, Void, Output>>
+        to route: KeyPath<Self, Transition<Self, PresentationRouteType, Void, Output>>
     ) -> Output {
         self.route(to: route, input: ())
     }
@@ -51,20 +64,19 @@ extension NavigationCoordinatable {
         input: Input
     ) -> Output where T.Input == Input {
         let transition = self[keyPath: route]
-        let output = transition.represented(of: self, input: input)
-        output.context = context
+        let output = transition.representation(of: self, input: input)
 
-        if case let context as NavigationCoordinatableContext = context {
-            context.path.append(
-                NavigationIdentifiableItem(
-                    id: transition.type.transform(input: input),
-                    viewRepresent: output,
-                    transitionStyle: transition.type.transitionStyle
-                )
-            )
-        } else {
-            context?.route(output.rootView, animated: true)
-        }
+        output.context.shouldCompatibleWithUIKit = context.shouldCompatibleWithUIKit
+        output.context.parent = self
+        output.context.root = context.root ?? context.parent ?? self
+
+        let item = NavigationIdentifiableItem(
+            id: transition.type.transform(input: input),
+            viewRepresent: output,
+            transitionStyle: transition.type.transitionStyle
+        )
+        context.lastPathItem = item
+        output.context.root?.path.append(item)
 
         return output
     }
@@ -76,30 +88,12 @@ extension NavigationCoordinatable {
         self.route(to: route, input: ())
     }
 
-    public func popToRoot() {
-        if let context = context as? NavigationCoordinatableContext {
-            context.path.removeLast(context.path.count)
-        } else {
-            context?.popToRoot()
-        }
-    }
-
     public func popLast() {
-        if let context = context as? NavigationCoordinatableContext, context.path.count > 0 {
-            context.path.removeLast()
-        } else {
-            context?.popLast()
-        }
+        context.root?.path.removeLast()
     }
 
-    public func rootView() -> some View {
-        root.environmentObject(self)
-    }
-
-    public func view() -> AnyView {
-        if context == nil {
-            context = NavigationCoordinatableContext(root: self)
-        }
-        return AnyView(NavigationCoordinatableView(coordinator: self).environmentObject(context!))
+    public func popToRoot() {
+        guard let root = context.root else { return }
+        root.path.removeLast(root.path.count)
     }
 }

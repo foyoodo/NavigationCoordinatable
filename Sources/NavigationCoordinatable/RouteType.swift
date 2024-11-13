@@ -12,8 +12,22 @@ public protocol IdentifiableRouteType: RouteType {
     func transform(input: Input) -> String
 }
 
-public struct Presentation: RouteType {
+public struct RootRouteType: RouteType {
+
+}
+
+public struct PresentationRouteType: RouteType {
     let type: PresentationType
+}
+
+extension RouteType where Self == PresentationRouteType {
+    public static var modal: PresentationRouteType {
+        .init(type: .modal)
+    }
+
+    public static var push: PresentationRouteType {
+        .init(type: .push)
+    }
 }
 
 public struct ZoomTransition<Input>: IdentifiableRouteType {
@@ -31,16 +45,6 @@ public struct ZoomTransition<Input>: IdentifiableRouteType {
 
     public func transform(input: Input) -> String {
         closure(input)
-    }
-}
-
-extension RouteType where Self == Presentation {
-    public static var modal: Presentation {
-        .init(type: .modal)
-    }
-
-    public static var push: Presentation {
-        .init(type: .push)
     }
 }
 

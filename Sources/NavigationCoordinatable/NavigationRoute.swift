@@ -1,4 +1,21 @@
-import Foundation
+import SwiftUI
+
+@propertyWrapper
+public struct NavigationRoot<T: NavigationCoordinatable, U: ViewRepresentable> {
+    public var wrappedValue: Transition<T, RootRouteType, Void, U>
+
+    init(standard: Transition<T, RootRouteType, Void, U>) {
+        self.wrappedValue = standard
+    }
+}
+
+extension NavigationRoot where U == AnyView {
+    public init<ViewOutput: View>(wrappedValue: @escaping (T) -> () -> (ViewOutput)) {
+        self.init(standard: .init(type: RootRouteType(), closure: { coordinator in
+            { _ in AnyView(wrappedValue(coordinator)()) }
+        }))
+    }
+}
 
 @propertyWrapper
 public struct NavigationRoute<T: NavigationCoordinatable, U: RouteType, Input, Output: ViewRepresentable> {

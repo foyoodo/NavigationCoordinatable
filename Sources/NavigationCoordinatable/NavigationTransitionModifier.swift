@@ -1,4 +1,4 @@
-#if os(iOS)
+#if !os(macOS)
 import SwiftUI
 
 private struct ZoomTransitionModifier<ID: Hashable>: ViewModifier {
