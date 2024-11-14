@@ -4,7 +4,11 @@ public protocol RouteType {
 
 }
 
-public protocol IdentifiableRouteType: RouteType {
+public protocol PresentationRouteType: RouteType {
+
+}
+
+public protocol IdentifiableRouteType: PresentationRouteType {
     associatedtype Input
 
     var transitionStyle: TransitionStyle { get }
@@ -16,18 +20,20 @@ public struct RootRouteType: RouteType {
 
 }
 
-public struct PresentationRouteType: RouteType {
-    let type: PresentationType
+public struct PushRouteType: PresentationRouteType {
+
 }
 
-extension RouteType where Self == PresentationRouteType {
-    public static var modal: PresentationRouteType {
-        .init(type: .modal)
-    }
+extension RouteType where Self == PushRouteType {
+    public static var push: PushRouteType { .init() }
+}
 
-    public static var push: PresentationRouteType {
-        .init(type: .push)
-    }
+public struct ModalRouteType: PresentationRouteType {
+
+}
+
+extension RouteType where Self == ModalRouteType {
+    public static var modal: ModalRouteType { .init() }
 }
 
 public struct ZoomTransition<Input>: IdentifiableRouteType {

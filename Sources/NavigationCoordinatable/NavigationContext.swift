@@ -9,7 +9,7 @@ public final class NavigationContext<T: NavigationCoordinatable>: ObservableObje
     public var shouldCompatibleWithUIKit: Bool = false
 
     @Published var path = NavigationPath()
-    @Published var lastPathItem: (any Hashable)?
+    @Published var lastItem: NavigationItem?
 
     public init(initial: KeyPath<T, Transition<T, RootRouteType, Void, AnyView>>) {
         self.initial = initial

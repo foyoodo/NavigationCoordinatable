@@ -4,7 +4,7 @@ public protocol NavigationCompatible {
 
 extension NavigationCompatible where Self: NavigationCoordinatable {
     public func representation<Input, Output: NavigationCoordinatable>(
-        of route: KeyPath<Self, Transition<Self, PresentationRouteType, Input, Output>>,
+        of route: KeyPath<Self, Transition<Self, PushRouteType, Input, Output>>,
         input: Input
     ) -> Output.Represented {
         let transition = self[keyPath: route]
@@ -16,7 +16,7 @@ extension NavigationCompatible where Self: NavigationCoordinatable {
     }
 
     public func representation<Output: NavigationCoordinatable>(
-        of route: KeyPath<Self, Transition<Self, PresentationRouteType, Void, Output>>
+        of route: KeyPath<Self, Transition<Self, PushRouteType, Void, Output>>
     ) -> Output.Represented {
         self.representation(of: route, input: ())
     }

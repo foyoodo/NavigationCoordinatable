@@ -31,7 +31,29 @@ extension NavigationCoordinatable {
 extension NavigationCoordinatable {
     @discardableResult
     public func route<Input, Output: NavigationCoordinatable>(
-        to route: KeyPath<Self, Transition<Self, PresentationRouteType, Input, Output>>,
+        to route: KeyPath<Self, Transition<Self, ModalRouteType, Input, Output>>,
+        input: Input
+    ) -> Output {
+        let transition = self[keyPath: route]
+        let output = transition.representation(of: self, input: input)
+
+        context.lastItem = .init(viewRepresent: output, presentationType: .modal)
+
+        return output
+    }
+
+    @discardableResult
+    public func route<Output: NavigationCoordinatable>(
+        to route: KeyPath<Self, Transition<Self, ModalRouteType, Void, Output>>
+    ) -> Output {
+        self.route(to: route, input: ())
+    }
+}
+
+extension NavigationCoordinatable {
+    @discardableResult
+    public func route<Input, Output: NavigationCoordinatable>(
+        to route: KeyPath<Self, Transition<Self, PushRouteType, Input, Output>>,
         input: Input
     ) -> Output {
         let transition = self[keyPath: route]
@@ -41,11 +63,11 @@ extension NavigationCoordinatable {
         output.context.parent = self
         output.context.root = context.root ?? context.parent ?? self
 
-        let item = NavigationItem(
+        let item = NavigationStackItem(
             keyPath: route.hashValue,
             viewRepresent: output
         )
-        context.lastPathItem = item
+        context.lastItem = .init(viewRepresent: output, presentationType: .push)
         output.context.root?.path.append(item)
 
         return output
@@ -53,7 +75,7 @@ extension NavigationCoordinatable {
 
     @discardableResult
     public func route<Output: NavigationCoordinatable>(
-        to route: KeyPath<Self, Transition<Self, PresentationRouteType, Void, Output>>
+        to route: KeyPath<Self, Transition<Self, PushRouteType, Void, Output>>
     ) -> Output {
         self.route(to: route, input: ())
     }
@@ -70,12 +92,12 @@ extension NavigationCoordinatable {
         output.context.parent = self
         output.context.root = context.root ?? context.parent ?? self
 
-        let item = NavigationIdentifiableItem(
+        let item = NavigationStackIdentifiableItem(
             id: transition.type.transform(input: input),
             viewRepresent: output,
             transitionStyle: transition.type.transitionStyle
         )
-        context.lastPathItem = item
+        context.lastItem = .init(viewRepresent: output, presentationType: .push)
         output.context.root?.path.append(item)
 
         return output
