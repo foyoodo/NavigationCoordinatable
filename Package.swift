@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "NavigationCoordinatable",
     platforms: [
-        .iOS(.v16), .macOS(.v13),
+        .iOS(.v15), .macOS(.v12),
     ],
     products: [
         .library(name: "NavigationCoordinatable", targets: ["NavigationCoordinatable"]),

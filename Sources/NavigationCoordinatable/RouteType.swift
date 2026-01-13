@@ -37,6 +37,7 @@ extension RouteType where Self == ModalRouteType {
 }
 
 public struct ZoomTransition<Input>: IdentifiableRouteType {
+
     let closure: (_ input: Input) -> String
 
     public var transitionStyle: TransitionStyle { .zoom }

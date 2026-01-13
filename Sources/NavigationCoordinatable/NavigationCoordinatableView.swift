@@ -1,11 +1,13 @@
 import SwiftUI
 
 public struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
+
     @Namespace private var namespace
 
     var coordinator: T
 
     @ObservedObject var context: NavigationContext<T>
+
     @ObservedObject var presentationHelper: PresentationHelper<T>
 
     init(coordinator: T) {
@@ -15,26 +17,64 @@ public struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
     }
 
     public var body: some View {
-        universalView
-            .environmentObject(coordinator)
-            .environmentObject(NamespaceContainer(namespace))
+        Group {
+            if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *), !context.shouldCompatibleWithUIKit {
+                viewImplementation
+            } else {
+                deprecatedViewImplementation
+            }
+        }
+        .sheet(
+            isPresented: .init(get: {
+                presentationHelper.presented?.transitionType == .modal
+            }, set: { newValue in
+                if !newValue {
+                    presentationHelper.presented = nil
+                }
+            })
+        ) {
+            if let view = presentationHelper.presented?.content {
+                return view
+            }
+            return AnyView(EmptyView())
+        }
+        .environmentObject(coordinator)
+        .environmentObject(NamespaceContainer(namespace))
     }
 
-    @ViewBuilder
-    var universalView: some View {
-        Group {
-            if context.shouldCompatibleWithUIKit {
+    @available(iOS 16.0, macOS 13.0, tvOS 16.0, *)
+    @ViewBuilder private var viewImplementation: some View {
+        if context.root == nil {
+            NavigationStack(path: $context.path) {
+                coordinator.root
+                    .navigationDestination(for: NavigationItem.self) { item in
+                        switch item {
+                        case let .item(item):
+                            item.content
+                        case let .identifiableItem(item):
+                            item.content
+                        }
+                    }
+            }
+        } else {
+            coordinator.root
+        }
+    }
+
+    @ViewBuilder private var deprecatedViewImplementation: some View {
+        if context.root == nil, !context.shouldCompatibleWithUIKit {
+            NavigationView {
                 coordinator.root
                     .background {
                         NavigationLink(
                             destination: {
-                                if let view = presentationHelper.presented?.view {
+                                if let view = presentationHelper.presented?.content {
                                     return view
                                 }
                                 return AnyView(EmptyView())
                             }(),
                             isActive: .init(get: {
-                                presentationHelper.presented?.type == .push
+                                presentationHelper.presented?.transitionType == .push
                             }, set: { newValue in
                                 if !newValue {
                                     // FIXME: auto pop when quick navigation (zoom transition)
@@ -47,41 +87,32 @@ public struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
                         )
                         .hidden()
                     }
-            } else {
-                if context.root == nil {
-                    NavigationStack(path: $context.path) {
-                        coordinator.root
-                            .navigationDestination(for: NavigationStackItem.self) { stackItem in
-                                AnyView(stackItem.viewRepresent.view())
-                            }
-                            .navigationDestination(for: NavigationStackIdentifiableItem.self) { item in
-                                let view = switch item.transitionStyle {
-                                case .zoom: item.viewRepresent.view()
-                                    #if !os(macOS)
-                                        .zoomTransition(id: item.id, namespace: namespace)
-                                    #endif
-                                }
-                                AnyView(view)
-                            }
-                    }
-                } else {
-                    coordinator.root
-                }
             }
-        }
-        .sheet(
-            isPresented: .init(get: {
-                presentationHelper.presented?.type == .modal
-            }, set: { newValue in
-                if !newValue {
-                    presentationHelper.presented = nil
+            .navigationViewStyle(.stack)
+        } else {
+            coordinator.root
+                .background {
+                    NavigationLink(
+                        destination: {
+                            if let view = presentationHelper.presented?.content {
+                                return view
+                            }
+                            return AnyView(EmptyView())
+                        }(),
+                        isActive: .init(get: {
+                            presentationHelper.presented?.transitionType == .push
+                        }, set: { newValue in
+                            if !newValue {
+                                // FIXME: auto pop when quick navigation (zoom transition)
+                                presentationHelper.presented = nil
+                            }
+                        }),
+                        label: {
+                            EmptyView()
+                        }
+                    )
+                    .hidden()
                 }
-            })
-        ) {
-            if let view = presentationHelper.presented?.view {
-                return view
-            }
-            return AnyView(EmptyView())
         }
     }
 }
