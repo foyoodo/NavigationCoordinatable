@@ -1,6 +1,6 @@
 import SwiftUI
 
-public final class AnyNavigationCoordinator: NavigationCoordinatable {
+public final class AnyNavigationCoordinator: @preconcurrency NavigationCoordinatable {
 
     public var context: NavigationContext<AnyNavigationCoordinator> = .init(initial: \.start)
 

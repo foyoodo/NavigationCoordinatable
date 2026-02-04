@@ -61,7 +61,7 @@ public final class NavigationContext<T: NavigationCoordinatable>: ObservableObje
 
         if item == nil {
             var p = parent
-            while let parent {
+            while let parent = p {
                 if let _ = parent.lastItem {
                     parent.lastItem = nil
                     break
@@ -79,7 +79,7 @@ public final class NavigationContext<T: NavigationCoordinatable>: ObservableObje
             lastItem = nil
             if root.path.isEmpty {
                 var p = parent
-                while let parent {
+                while let parent = p {
                     parent.lastItem = nil
                     p = parent
                 }

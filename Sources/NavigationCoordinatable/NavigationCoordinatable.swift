@@ -19,6 +19,7 @@ extension NavigationCoordinatable {
         self[keyPath: context.initial].representation(of: self).content
     }
 
+    @MainActor
     public var content: some View {
         NavigationCoordinatableView(coordinator: self)
     }
@@ -109,7 +110,7 @@ extension NavigationCoordinatable {
     }
 
     @discardableResult
-    public func route<Content: View>(to content: Content) -> ViewRepresentable {
+    public func route<Content: View>(to content: Content) -> any ViewRepresentable {
         let coordinator = AnyNavigationCoordinator(content: content)
         coordinator.context.shouldCompatibleWithUIKit = context.shouldCompatibleWithUIKit
         coordinator.context.parent = self

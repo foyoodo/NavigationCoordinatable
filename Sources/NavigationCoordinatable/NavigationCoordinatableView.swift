@@ -52,7 +52,10 @@ public struct NavigationCoordinatableView<T: NavigationCoordinatable>: View {
                         case let .item(item):
                             item.content
                         case let .identifiableItem(item):
-                            item.content
+                            switch item.transitionStyle {
+                            case .zoom:
+                                item.content
+                            }
                         }
                     }
             }
